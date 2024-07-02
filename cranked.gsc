@@ -29,8 +29,6 @@ main()
 		replacefunc(maps\mp\zombies\_zm::round_wait, ::round_wait_minigame);
 		replacefunc(maps\mp\zombies\_zm_audio_announcer::init, ::init_audio_announcer);
 		replacefunc(maps\mp\zombies\_zm_powerups::init_powerups, ::init_powerups_minigame);
-
-		level thread ifzombiedies();
 	}
 }
 
@@ -69,6 +67,7 @@ init()
 		level thread nextroundtimer();
 
 		level.leaper_rounds_enabled = 0;
+		level.callbackactorkilled = ::actor_killed_override;
 	}
 }
 
@@ -316,55 +315,6 @@ new_weapon_spawn_think()
 new_vending_weapon_upgrade()
 {
 
-}
-
-ifzombiedies()
-{
-    for(;;)
-    {
-        foreach( zombie in getaiarray( level.zombie_team ) )
-        {
-			if( !(IsDefined( zombie.waitingfordamage )) )
-			{
-				zombie.killedcheck = 1;
-				zombie thread zombiekilled();
-			}
-        }
-        wait 0.25;
-    }
-}
-
-zombiekilled()
-{
-    self endon( "killed" );
-    self.waitingfordamage = 1;
-    for(;;)
-    {
-        self waittill( "damage", amount, attacker, dir, point, mod );
-        if( isplayer( attacker ) )
-        {
-            if( !isalive( self ) )
-            {
-				if (attacker.timerstarted == 0)
-				{
-					attacker.timerstarted = 1;
-					attacker thread cranked_timer();
-					attacker thread showBelowMessage("Let the carnage begin!", "zmb_weap_wall");
-				}
-				else
-				{
-					if (attacker.seconds < level.maxtime)
-					{
-						attacker.seconds = level.maxtime;
-					}
-				}
-				attacker notify("reset_glow");
-				attacker thread green_glow(attacker.nametarget);
-				
-				self notify( "killed" );
-            }
-        }
-    }
 }
 
 crankedHUD()
@@ -1634,7 +1584,7 @@ betaMessage()
     betamessage.horzalign = "right";
     betamessage.vertalign = "top";
 	betamessage.foreground = 1;
-	betamessage setText ("TechnoOps Collection\nCranked Beta\nb0.3");
+	betamessage setText ("TechnoOps Collection\nCranked Beta\nb0.4");
 }
 
 set_time_frozen(time, endon_notify)
@@ -1683,4 +1633,71 @@ set_time_frozen_on_end_game()
 	time = int((getTime() - self.start_time) / 1000);
 
 	self set_time_frozen(time, "forever");
+}
+
+actor_killed_override( einflictor, attacker, idamage, smeansofdeath, sweapon, vdir, shitloc, psoffsettime )
+{
+    if ( game["state"] == "postgame" )
+        return;
+
+    if ( isai( attacker ) && isdefined( attacker.script_owner ) )
+    {
+        if ( attacker.script_owner.team != self.aiteam )
+            attacker = attacker.script_owner;
+    }
+
+    if ( attacker.classname == "script_vehicle" && isdefined( attacker.owner ) )
+        attacker = attacker.owner;
+
+    if ( isdefined( attacker ) && isplayer( attacker ) )
+    {
+        multiplier = 1;
+
+        if ( is_headshot( sweapon, shitloc, smeansofdeath ) )
+            multiplier = 1.5;
+
+        type = undefined;
+
+        if ( isdefined( self.animname ) )
+        {
+            switch ( self.animname )
+            {
+                case "quad_zombie":
+                    type = "quadkill";
+                    break;
+                case "ape_zombie":
+                    type = "apekill";
+                    break;
+                case "zombie":
+                    type = "zombiekill";
+                    break;
+                case "zombie_dog":
+                    type = "dogkill";
+                    break;
+            }
+        }
+		
+		if (attacker.timerstarted == 0)
+		{
+			attacker.timerstarted = 1;
+			attacker thread cranked_timer();
+			attacker thread showBelowMessage("Let the carnage begin!", "zmb_weap_wall");
+		}
+		else
+		{
+			if (attacker.seconds < level.maxtime)
+			{
+				attacker.seconds = level.maxtime;
+			}
+		}
+		attacker notify("reset_glow");
+		attacker thread green_glow(attacker.nametarget);
+		
+    }
+
+    if ( isdefined( self.is_ziplining ) && self.is_ziplining )
+        self.deathanim = undefined;
+
+    if ( isdefined( self.actor_killed_override ) )
+        self [[ self.actor_killed_override ]]( einflictor, attacker, idamage, smeansofdeath, sweapon, vdir, shitloc, psoffsettime );
 }
