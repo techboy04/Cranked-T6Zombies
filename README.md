@@ -1,4 +1,4 @@
-# Cranked - Plutonium T6 Zombies - Beta 0.3
+# Cranked - Plutonium T6 Zombies - Beta 0.4
 I decided to recreate a Cranked mode in Zombies.
 
 I did make this mode a little rough on the edges but it should work pretty well.
