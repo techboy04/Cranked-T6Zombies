@@ -1584,7 +1584,7 @@ betaMessage()
     betamessage.horzalign = "right";
     betamessage.vertalign = "top";
 	betamessage.foreground = 1;
-	betamessage setText ("TechnoOps Collection\nCranked Beta\nb0.4");
+	betamessage setText ("TechnoOps Collection\nCranked Beta\nb0.5");
 }
 
 set_time_frozen(time, endon_notify)
