@@ -1,9 +1,10 @@
-# Cranked - Plutonium T6 Zombies - Beta 0.4
+# Cranked - Plutonium T6 Zombies - Beta 0.5
 I decided to recreate a Cranked mode in Zombies.
 
 I did make this mode a little rough on the edges but it should work pretty well.
 
-NOTE: Mob of the Dead currently does not work! All youre gonna get is an infinite loop which doesnt load the map!
+~~NOTE: Mob of the Dead currently does not work! All youre gonna get is an infinite loop which doesnt load the map!~~
+This has since been fixed if you use the ``mob_cranked_fix.gsc`` file in zm_prison. The file should be in ``script\zm\zm_prison\mob_cranked_fix.gsc``
 
 The first kill will start the timer, every kill resets the timer, and every few rounds, the timer shrinks. Be the last alive to win! Once the timer runs out or you die, youre immediately eliminated! (No Quick Revive can save you now!)
 
