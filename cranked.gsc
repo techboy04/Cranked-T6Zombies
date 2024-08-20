@@ -194,6 +194,7 @@ kill_on_downed()
 	{
 		self waittill ("player_downed");
 		self thread bleed_out();
+		self.isEliminated = 1;
 		
 		foreach (player in level.players)
 		{
@@ -210,15 +211,16 @@ kill_on_downed()
 
 if_all_players_eliminated()
 {
-	foreach (player in get_players())
+	count = 0;
+	foreach (player in level.players)
 	{
-		if (self.sessionstate == "spectator")
+		if (player.isEliminated != 1)
 		{
 			count += 1;
 		}
 	}
 	
-	if (count == level.players.size)
+	if (count == 1)
 	{
 		return true;
 	}
@@ -947,11 +949,11 @@ round_think_minigame( restart )
 
         if ( isdefined( level.no_end_game_check ) && level.no_end_game_check )
         {
-            level thread last_stand_revive();
-			level thread spectators_respawn();
+//            level thread last_stand_revive();
+//			level thread spectators_respawn();
         }
-        else if ( 1 != players.size )
-            level thread spectators_respawn();
+//        else if ( 1 != players.size )
+//            level thread spectators_respawn();
 
         players = get_players();
         array_thread( players, maps\mp\zombies\_zm_pers_upgrades_system::round_end );
@@ -999,7 +1001,7 @@ wait_for_ready_input()
 	self waittill ("can_readyup");
 	while(1)
 	{
-		if(self meleebuttonpressed() && self adsbuttonpressed())
+		if((self meleebuttonpressed() && self adsbuttonpressed()) || (isDefined(self.bot)))
 		{
 			if (self.voted == 0)
 			{
