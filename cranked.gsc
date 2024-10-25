@@ -233,16 +233,16 @@ if_all_players_eliminated()
 cranked_timer()
 {
 	self.seconds = level.maxtime;
-	miliseconds = 10;
+	self.miliseconds = 10;
 	while(self.timerstarted == 1 && self.seconds > 0)
 	{
 		if(self.timerpaused == 0)
 		{
 			self.seconds -= 1;
-			miliseconds -= 1;
-			if (miliseconds <= 0)
+			self.miliseconds -= 1;
+			if (self.miliseconds <= 0)
 			{
-				miliseconds = 10;
+				self.miliseconds = 10;
 				if (self.seconds <= 100)
 				{
 					self thread red_glow(self.nametarget);
@@ -255,6 +255,7 @@ cranked_timer()
 	if(level.players.size == 1)
 	{
 		level.winner = self.name;
+		level notify ("end_game");
 	}
 	self dodamage(self.health, self.origin);
 }
@@ -1586,7 +1587,7 @@ betaMessage()
     betamessage.horzalign = "right";
     betamessage.vertalign = "top";
 	betamessage.foreground = 1;
-	betamessage setText ("TechnoOps Collection\nCranked Beta\nb0.6");
+	betamessage setText ("TechnoOps Collection\nCranked Beta\nb0.7");
 }
 
 set_time_frozen(time, endon_notify)
@@ -1690,6 +1691,7 @@ actor_killed_override( einflictor, attacker, idamage, smeansofdeath, sweapon, vd
 			if (attacker.seconds < level.maxtime)
 			{
 				attacker.seconds = level.maxtime;
+				attacker.miliseconds = 10;
 			}
 		}
 		attacker notify("reset_glow");
