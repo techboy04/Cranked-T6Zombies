@@ -1,0 +1,16 @@
+>game,T6
+>name,mod
+>type,fastfile
+
+image,specialty_2x_zombies
+image,specialty_firesale_zombies
+image,specialty_instakill_zombies
+image,specialty_zomblood_zombies
+image,specialty_unlimitedammo_zombies
+image,specialty_timefreeze_zombies
+material,specialty_unlimitedammo_zombies
+material,specialty_timefreeze_zombies
+
+script,scripts/zm/main.gsc
+script,scripts/zm/zm_prison/mob_cranked_fix.gsc
+soundbank,mod.all
