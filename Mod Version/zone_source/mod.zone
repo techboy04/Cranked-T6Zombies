@@ -11,6 +11,11 @@ image,specialty_timefreeze_zombies
 material,specialty_unlimitedammo_zombies
 material,specialty_timefreeze_zombies
 
+image,zombie_teddybear_n
+image,~-gzombie_teddybear_c
+material,mc/mtl_prop_bear
+xmodel,zombie_teddybear
+
 script,scripts/zm/main.gsc
 script,scripts/zm/zm_prison/mob_cranked_fix.gsc
 soundbank,mod.all
