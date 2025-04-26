@@ -169,6 +169,9 @@ CoD.InitArchiveDvars = function()
 	if UIExpression.DvarString(nil, "enable_cranked") == "" then
 		Engine.Exec(nil, "seta enable_cranked 1")
 	end
+	if UIExpression.DvarString(nil, "team_cranked_mode") == "" then
+		Engine.Exec(nil, "seta team_cranked_mode 1")
+	end
 end
 
 LUI.createMenu.main = function()

@@ -13,6 +13,7 @@
 main()
 {
 	create_dvar("enable_cranked", 1);
+	create_dvar("team_cranked_mode", 1);
 	
 	precacheshader("scorebar_zom_1");
    	precacheshader("menu_mp_weapons_1911");
@@ -192,6 +193,11 @@ init_powerups_minigame()
 
 kill_on_downed()
 {
+	if(getDvarInt("team_cranked_mode") == 1)
+	{
+		return;
+	}
+	
 	for(;;)
 	{
 		self waittill ("player_downed");
@@ -720,13 +726,20 @@ end_game_minigame()
                 game_over[i].alpha = 0;
                 game_over[i].color = ( 1, 1, 1 );
                 game_over[i].hidewheninmenu = 1;
-				if (isDefined(level.winner))
+				if(getDvarInt("team_cranked_mode") == 1)
 				{
-					game_over[i] settext( level.winner + " wins!" );
+					game_over[i] settext( "Game Over" );
 				}
 				else
 				{
-					game_over[i] settext( "Nobody Wins!" );
+					if (isDefined(level.winner))
+					{
+						game_over[i] settext( level.winner + " wins!" );
+					}
+					else
+					{
+						game_over[i] settext( "Nobody Wins!" );
+					}
 				}
                 game_over[i] fadeovertime( 1 );
                 game_over[i].alpha = 1;
@@ -952,13 +965,16 @@ round_think_minigame( restart )
 
         players = get_players();
 
-        if ( isdefined( level.no_end_game_check ) && level.no_end_game_check )
-        {
-//            level thread last_stand_revive();
-//			level thread spectators_respawn();
-        }
-//        else if ( 1 != players.size )
-//            level thread spectators_respawn();
+		if(getDvarInt("team_cranked_mode") == 1)
+		{
+			if ( isdefined( level.no_end_game_check ) && level.no_end_game_check )
+			{
+				level thread last_stand_revive();
+				level thread spectators_respawn();
+			}
+			else if ( 1 != players.size )
+				level thread spectators_respawn();
+		}
 
         players = get_players();
         array_thread( players, maps\mp\zombies\_zm_pers_upgrades_system::round_end );
@@ -1245,7 +1261,14 @@ startHUDMessage()
 	hud2.hidewheninmenu = 1;
 	hud2.foreground = 1;
 
-	hud2 settext("Cranked");
+	if(getDvarInt("team_cranked_mode") == 1)
+	{
+		hud2 settext("Team Cranked");
+	}
+	else
+	{
+		hud2 settext("Cranked");
+	}
 	hud2.fontscale = 8;
 	hud2 changefontscaleovertime( 1 );
     hud2 fadeovertime( 1 );
@@ -1267,7 +1290,14 @@ startHUDMessage()
 	hud3.hidewheninmenu = 1;
 	hud3.foreground = 1;
 
-	hud3 settext("Get kills to reset the timer, when timer reaches zero, youre eliminated!");
+	if(getDvarInt("team_cranked_mode") == 1)
+	{
+		hud3 settext("Players share a timer. Get a kill to reset the timer.");
+	}
+	else
+	{
+		hud3 settext("Get kills to reset the timer, when timer reaches zero, youre eliminated!");
+	}
 
 	hud3.fontscale = 2;
 	hud3 changefontscaleovertime( 1 );
@@ -1349,11 +1379,25 @@ unlimited_ammo_powerup()
 
 pause_timer_powerup()
 {
-	self notify("end_pause_timer");
-	self playsound("zmb_cha_ching");
-	self thread turn_on_pause_timer();
-	self thread pause_timer_on_hud();
-	self thread notify_pause_timer_end();
+	if(getDvarInt("team_cranked_mode") == 1)
+	{
+		foreach(player in level.players)
+		{
+			player notify("end_pause_timer");
+			player playsound("zmb_cha_ching");
+			player thread turn_on_pause_timer();
+			player thread pause_timer_on_hud();
+			player thread notify_pause_timer_end();
+		}
+	}
+	else
+	{
+		self notify("end_pause_timer");
+		self playsound("zmb_cha_ching");
+		self thread turn_on_pause_timer();
+		self thread pause_timer_on_hud();
+		self thread notify_pause_timer_end();
+	}
 }
 
 unlimited_ammo_on_hud()
@@ -1675,22 +1719,47 @@ actor_killed_override( einflictor, attacker, idamage, smeansofdeath, sweapon, vd
             }
         }
 		
-		if (attacker.timerstarted == 0)
+		if(getDvarInt("team_cranked_mode") == 1)
 		{
-			attacker.timerstarted = 1;
-			attacker thread cranked_timer();
-			attacker thread showBelowMessage("Let the carnage begin!", "zmb_weap_wall");
+			foreach(player in level.players)
+			{
+				if (player.timerstarted == 0)
+				{
+					player.timerstarted = 1;
+					player thread cranked_timer();
+					player thread showBelowMessage("Let the carnage begin!", "zmb_weap_wall");
+				}
+				else
+				{
+					if (player.seconds < level.maxtime)
+					{
+						player.seconds = level.maxtime;
+						player.miliseconds = 10;
+					}
+				}
+				player notify("reset_glow");
+				player thread green_glow(player.nametarget);
+			}
 		}
 		else
 		{
-			if (attacker.seconds < level.maxtime)
+			if (attacker.timerstarted == 0)
 			{
-				attacker.seconds = level.maxtime;
-				attacker.miliseconds = 10;
+				attacker.timerstarted = 1;
+				attacker thread cranked_timer();
+				attacker thread showBelowMessage("Let the carnage begin!", "zmb_weap_wall");
 			}
+			else
+			{
+				if (attacker.seconds < level.maxtime)
+				{
+					attacker.seconds = level.maxtime;
+					attacker.miliseconds = 10;
+				}
+			}
+			attacker notify("reset_glow");
+			attacker thread green_glow(attacker.nametarget);
 		}
-		attacker notify("reset_glow");
-		attacker thread green_glow(attacker.nametarget);
 		
     }
 
